@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Times Table Turbo</title>
+    <!-- Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- PWA Theme Color -->
+    <meta name="theme-color" content="#2b6cb0">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overscroll-behavior: none;
+            background-color: #1a202c; /* Dark background for body */
+            color: #e2e8f0; /* Light text for body */
+        }
+
+        /* Basic screen transition (fade) */
+        .screen {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* Confetti Animation - Adjusted for better visibility on dark background */
+        #confetti-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00; /* Will be overridden by JS colors */
+            opacity: 0;
+            animation: fall 5s linear forwards;
+            border-radius: 50%; /* Make confetti round */
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        /* Starburst/Explosion effect */
+        .starburst {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 40px solid gold; /* Example color */
+            transform-origin: 50% 100%;
+            animation: explode 1.5s forwards ease-out;
+            opacity: 0;
+            z-index: 60;
+        }
+
+        @keyframes explode {
+            0% {
+                opacity: 1;
+                transform: scale(0) rotate(0deg) translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg) translateY(-20px); /* Lift slightly */
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) rotate(720deg) translateY(-100px);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen overscroll-none">
+
+    <div class="w-full max-w-md mx-auto p-4">
+        <div id="app-container" class="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-xl relative overflow-hidden">
+
+            <!-- Confetti Container --><div id="confetti-container"></div>
+
+            <!-- ===== Home Screen ===== --><div id="homeScreen" class="screen space-y-6">
+                <h1 class="text-4xl font-black text-center text-blue-400">Times Table Turbo</h1>
+                <p class="text-center text-gray-300">Choose a times table (2-12) to practice. Try to answer all 13 questions in 60 seconds!</p>
+                
+                <!-- Fact Selection Grid --><div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    <button data-factor="2" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">2s</button>
+                    <button data-factor="3" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">3s</button>
+                    <button data-factor="4" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">4s</button>
+                    <button data-factor="5" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">5s</button>
+                    <button data-factor="6" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">6s</button>
+                    <button data-factor="7" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">7s</button>
+                    <button data-factor="8" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">8s</button>
+                    <button data-factor="9" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">9s</button>
+                    <button data-factor="10" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">10s</button>
+                    <button data-factor="11" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">11s</button>
+                    <button data-factor="12" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">12s</button>
+                </div>
+
+                <p id="personalBestDisplay" class="text-center text-lg text-yellow-400 font-medium hidden pt-4">Best: --.--s</p>
+
+                <button id="startButton" class="w-full p-4 bg-blue-600 text-white font-bold rounded-lg text-xl shadow-lg hover:bg-blue-700 transition-all duration-200 opacity-50 cursor-not-allowed" disabled>
+                    Start
+                </button>
+            </div>
+
+            <!-- ===== Game Screen ===== --><div id="gameScreen" class="screen space-y-6 hidden">
+                <!-- Header: Timer and Progress --><div class="flex justify-between items-center">
+                    <div class="text-xl font-bold text-gray-200">
+                        Time: <span id="timerDisplay" class="text-red-400">60.0</span>s
+                    </div>
+                    <div class="text-lg font-medium text-gray-400">
+                        <span id="progressDisplay">1</span> / 13
+                    </div>
+                </div>
+
+                <!-- Problem --><div id="problemDisplay" class="text-center text-5xl sm:text-6xl font-black text-blue-400 p-8 bg-gray-700 rounded-lg">
+                    12 x 12 =
+                </div>
+
+                <!-- Answer Form --><form id="answerForm" class="space-y-4">
+                    <input type="number" id="answerInput" inputmode="numeric" pattern="[0-9]*" class="w-full text-center text-4xl p-4 bg-gray-700 border-4 border-gray-600 text-gray-100 rounded-lg focus:border-blue-500 focus:ring-0 outline-none" autocomplete="off" required>
+                    <button type="submit" class="w-full p-4 bg-green-600 text-white font-bold rounded-lg text-xl shadow-lg hover:bg-green-700 transition-all duration-200">
+                        Submit
+                    </button>
+                </form>
+            </div>
+
+            <!-- ===== Results Screen ===== --><div id="resultsScreen" class="screen space-y-6 hidden">
+                <h1 id="resultsTitle" class="text-4xl font-black text-center text-blue-400">Congratulations!</h1>
+                <p id="resultsMessage" class="text-center text-xl text-gray-200">Your time: 45.32s</p>
+
+                <div class="space-y-3">
+                    <button id="tryAgainButton" class="w-full p-4 bg-blue-600 text-white font-bold rounded-lg text-xl shadow-lg hover:bg-blue-700 transition-all duration-200">
+                        Try Again
+                    </button>
+                    <button id="homeButton" class="w-full p-4 bg-gray-600 text-white font-bold rounded-lg text-xl shadow-lg hover:bg-gray-700 transition-all duration-200">
+                        Home
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- PWA Setup ---
+            // 1. Register Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js') // Use the external sw.js file
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            }
+            // 2. Manifest is now linked in <head>
+
+            // --- App Logic ---
+
+            // DOM Elements
+            const screens = {
+                home: document.getElementById('homeScreen'),
+                game: document.getElementById('gameScreen'),
+                results: document.getElementById('resultsScreen')
+            };
+            const startButton = document.getElementById('startButton');
+            const factButtons = document.querySelectorAll('.fact-btn');
+            
+            const timerDisplay = document.getElementById('timerDisplay');
+            const progressDisplay = document.getElementById('progressDisplay');
+            const problemDisplay = document.getElementById('problemDisplay');
+            const answerForm = document.getElementById('answerForm');
+            const answerInput = document.getElementById('answerInput');
+
+            const resultsTitle = document.getElementById('resultsTitle');
+            const resultsMessage = document.getElementById('resultsMessage');
+            const tryAgainButton = document.getElementById('tryAgainButton');
+            const homeButton = document.getElementById('homeButton');
+            const confettiContainer = document.getElementById('confetti-container');
+            const personalBestDisplay = document.getElementById('personalBestDisplay');
+
+            // App State
+            let appState = {
+                selectedFactor: null,
+                problems: [],
+                currentProblemIndex: 0,
+                score: 0,
+                timerId: null,
+                startTime: 0,
+                timeLimit: 60 // 60 seconds
+            };
+
+            // LocalStorage Key
+            const RECORD_KEY_PREFIX = 'timesTurbo_best_';
+
+            // --- Functions ---
+
+            function showScreen(screenId) {
+                Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+                if (screens[screenId]) {
+                    screens[screenId].classList.remove('hidden');
+                }
+            }
+
+            function selectFactor(factor) {
+                appState.selectedFactor = parseInt(factor, 10);
+                // Highlight selected button
+                factButtons.forEach(btn => {
+                    btn.classList.remove('bg-blue-600', 'text-white');
+                    btn.classList.add('bg-gray-700', 'text-gray-100'); // Reset to dark theme default
+                if (btn.dataset.factor == factor) {
+                    btn.classList.add('bg-blue-600', 'text-white');
+                        btn.classList.remove('bg-gray-700', 'text-gray-100');
+                }
+            });
+
+            // Show personal best
+            const record = getPersonalRecord(appState.selectedFactor);
+            if (record) {
+                personalBestDisplay.textContent = `Best: ${record.toFixed(2)}s`;
+            } else {
+                personalBestDisplay.textContent = `Best: --.--s`;
+            }
+            personalBestDisplay.classList.remove('hidden');
+
+            // Enable start button
+            startButton.disabled = false;
+                startButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            function generateProblems(factor) {
+                let problems = [];
+                for (let i = 0; i <= 12; i++) {
+                    problems.push({
+                        text: `${factor} x ${i} =`,
+                        answer: factor * i
+                    });
+                }
+
+                // Shuffle the problems using Fisher-Yates shuffle
+                // This makes the order unpredictable!
+                for (let i = problems.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [problems[i], problems[j]] = [problems[j], problems[i]]; // Swap
+                }
+                
+                return problems;
+            }
+
+            function startGame() {
+                // 1. Setup state
+                appState.problems = generateProblems(appState.selectedFactor);
+                appState.currentProblemIndex = 0;
+                appState.score = 0;
+                
+                // 2. Show game screen
+                showScreen('game');
+
+                // 3. Display first problem
+                displayProblem();
+
+                // 4. Start timer
+                startTimer();
+            }
+
+            function displayProblem() {
+                const problem = appState.problems[appState.currentProblemIndex];
+                problemDisplay.textContent = problem.text;
+                progressDisplay.textContent = appState.currentProblemIndex + 1;
+                answerInput.value = '';
+                answerInput.focus();
+            }
+
+            function startTimer() {
+                appState.startTime = Date.now();
+                timerDisplay.textContent = appState.timeLimit.toFixed(1);
+                timerDisplay.classList.remove('text-red-400', 'text-red-500'); // Reset potential red color
+
+                appState.timerId = setInterval(() => {
+                    const elapsed = (Date.now() - appState.startTime) / 1000;
+                    const remaining = appState.timeLimit - elapsed;
+
+                    if (remaining <= 0) {
+                        timerDisplay.textContent = '0.0';
+                        endGame('time'); // Time's up. Pass 'time' as the reason.
+                    } else {
+                        timerDisplay.textContent = remaining.toFixed(1);
+                        if(remaining < 10) {
+                            timerDisplay.classList.add('text-red-400'); // Dark theme red
+                        }
+                    }
+                }, 100);
+            }
+
+            function stopTimer() {
+                clearInterval(appState.timerId);
+                appState.timerId = null;
+            }
+
+            function checkAnswer(e) {
+                e.preventDefault();
+                const userAnswer = parseInt(answerInput.value, 10);
+                const correctAnswer = appState.problems[appState.currentProblemIndex].answer;
+
+                if (userAnswer === correctAnswer) {
+                    // Correct Answer
+                    appState.score++;
+                    // Move to next problem
+                    appState.currentProblemIndex++;
+
+                    if (appState.currentProblemIndex < appState.problems.length) {
+                        displayProblem();
+                    } else {
+                        // All problems finished correctly
+                        endGame('complete'); // Pass 'complete' as the reason
+                    }
+                } else {
+                    // Wrong Answer
+                    endGame('wrong'); // Pass 'wrong' as the reason
+                }
+            }
+
+            function endGame(reason) {
+                stopTimer();
+                showScreen('results');
+                stopConfetti(); // Clear any old confetti
+
+                const endTime = Date.now();
+                const elapsedTime = (endTime - appState.startTime) / 1000;
+                const currentRecord = getPersonalRecord(appState.selectedFactor);
+                let isNewRecord = false;
+                resultsMessage.classList.remove('text-red-400'); // Reset text color
+
+                if (reason === 'complete' && elapsedTime <= appState.timeLimit) {
+                    // WIN! Check for new record
+                    if (!currentRecord || elapsedTime < currentRecord) {
+                        isNewRecord = true;
+                        setPersonalRecord(appState.selectedFactor, elapsedTime);
+                    }
+
+                    if (isNewRecord) {
+                        resultsTitle.textContent = "New Record!";
+                        resultsMessage.textContent = `New best for the ${appState.selectedFactor}s table: ${elapsedTime.toFixed(2)}s!`;
+                        startConfetti(true); // Full celebration
+                    } else {
+                        resultsTitle.textContent = "Great Job!";
+                        resultsMessage.textContent = `Your time: ${elapsedTime.toFixed(2)}s (Best: ${currentRecord.toFixed(2)}s)`;
+                        startConfetti(false); // Standard celebration
+                    }
+
+                } else if (reason === 'complete' && elapsedTime > appState.timeLimit) {
+                    // Finished, but too slow
+                    resultsTitle.textContent = "Good Try!";
+                    resultsMessage.textContent = `You finished the ${appState.selectedFactor}s table in ${elapsedTime.toFixed(2)}s. Try to beat 60s!`;
+                    resultsMessage.classList.add('text-red-400');
+                    startConfetti(false); // Less intense confetti
+                
+                } else if (reason === 'wrong') {
+                    // Stopped due to wrong answer
+                    const problem = appState.problems[appState.currentProblemIndex];
+                    resultsTitle.textContent = "Oh no!";
+                    resultsMessage.textContent = `Wrong! The answer to ${problem.text} was ${problem.answer}. You got ${appState.score} correct.`;
+                    resultsMessage.classList.add('text-red-400');
+                    startConfetti(false); // Less intense confetti
+
+                } else { // This covers the 'time' reason
+                    // Time's Up
+                    resultsTitle.textContent = "Time's Up!";
+                    resultsMessage.textContent = `You got ${appState.score} out of 13 correct for the ${appState.selectedFactor}s table.`;
+                    resultsMessage.classList.add('text-red-400');
+                    startConfetti(false); // Less intense confetti
+                }
+            }
+            
+            function goHome() {
+                stopConfetti();
+                appState.selectedFactor = null;
+                // Reset home screen
+                factButtons.forEach(btn => {
+                    btn.classList.remove('bg-blue-600', 'text-white');
+                    btn.classList.add('bg-gray-700', 'text-gray-100');
+                });
+                personalBestDisplay.classList.add('hidden'); // Hide personal best
+                personalBestDisplay.textContent = 'Best: --.--s'; // Reset text
+                startButton.disabled = true;
+                startButton.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                showScreen('home');
+            }
+
+            // --- Confetti & Starburst Functions ---
+            let confettiInterval = null;
+            let starburstTimeout = null;
+
+            function startConfetti(fullCelebration) {
+                stopConfetti(); // Ensure no previous intervals are running
+                const colors = ['#fde047', '#34d399', '#f87171', '#60a5fa', '#a78bfa', '#fbcfe8']; // Brighter colors for dark theme
+
+                if (fullCelebration) {
+                    // Add starbursts/explosions
+                    for(let i = 0; i < 5; i++) {
+                        setTimeout(() => createStarburst(Math.random() * 80 + 10, Math.random() * 80 + 10), i * 300);
+                    }
+                    // More intense confetti
+                    confettiInterval = setInterval(() => {
+                        for(let i = 0; i < 5; i++) { // Generate more confetti at once
+                            createConfettiPiece(colors);
+                        }
+                    }, 50); // More frequent
+                } else {
+                    // Less intense confetti
+                    confettiInterval = setInterval(() => {
+                        createConfettiPiece(colors);
+                    }, 200); // Less frequent
+                }
+            }
+
+            function createConfettiPiece(colors) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = `${Math.random() * 12 + 8}px`; // Slightly larger
+                confetti.style.height = confetti.style.width;
+                confetti.style.animationDuration = `${Math.random() * 4 + 4}s`; // Longer animation
+                confetti.style.animationDelay = `${Math.random() * 1}s`; // Shorter delay for quicker start
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                
+                confettiContainer.appendChild(confetti);
+
+                setTimeout(() => {
+                    confetti.remove();
+                }, parseFloat(confetti.style.animationDuration) * 1000 + parseFloat(confetti.style.animationDelay) * 1000);
+            }
+
+            function createStarburst(xPercent, yPercent) {
+                const starburst = document.createElement('div');
+                starburst.classList.add('starburst');
+                starburst.style.left = `${xPercent}%`;
+                starburst.style.top = `${yPercent}%`;
+                starburst.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 360}deg)`; // Centered and random rotation
+                starburst.style.borderColor = `transparent transparent ${['gold', 'silver', '#fbcfe8', '#fde047'][Math.floor(Math.random() * 4)]}`; // Dynamic color
+                starburst.style.animationDuration = `${Math.random() * 0.8 + 1.2}s`; // Varied duration
+                starburst.style.animationDelay = `${Math.random() * 0.5}s`;
+
+                confettiContainer.appendChild(starburst);
+
+                setTimeout(() => {
+                    starburst.remove();
+                }, parseFloat(starburst.style.animationDuration) * 1000 + parseFloat(starburst.style.animationDelay) * 1000);
+            }
+
+            function stopConfetti() {
+                clearInterval(confettiInterval);
+                clearTimeout(starburstTimeout);
+                confettiContainer.innerHTML = ''; // Clear all confetti and starbursts
+            }
+
+            // --- LocalStorage Functions ---
+            function getPersonalRecord(factor) {
+                const key = RECORD_KEY_PREFIX + factor;
+                const record = localStorage.getItem(key);
+                return record ? parseFloat(record) : null;
+            }
+
+            function setPersonalRecord(factor, time) {
+                const key = RECORD_KEY_PREFIX + factor;
+                localStorage.setItem(key, time.toFixed(2)); // Store with 2 decimal places
+            }
+
+
+            // --- Event Listeners ---
+            factButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    selectFactor(button.dataset.factor);
+                });
+            });
+
+            startButton.addEventListener('click', startGame);
+
+            answerForm.addEventListener('submit', checkAnswer);
+
+            tryAgainButton.addEventListener('click', startGame); // Restarts same factor
+            homeButton.addEventListener('click', goHome);
+
+
+            // --- Initial Setup ---
+            showScreen('home');
+        });
+    </script>
+</body>
+</html>
