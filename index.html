@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Times Table Turbo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <!-- Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font --><link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 
+    <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
 
+    <!-- PWA Theme Color -->
     <meta name="theme-color" content="#2b6cb0">
 
     <style>
@@ -94,13 +96,13 @@
     <div class="w-full max-w-md mx-auto p-4">
         <div id="app-container" class="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-xl relative overflow-hidden">
 
-            <div id="confetti-container"></div>
+            <!-- Confetti Container --><div id="confetti-container"></div>
 
-            <div id="homeScreen" class="screen space-y-6">
+            <!-- ===== Home Screen ===== --><div id="homeScreen" class="screen space-y-6">
                 <h1 class="text-4xl font-black text-center text-blue-400">Times Table Turbo</h1>
                 <p class="text-center text-gray-300">Choose a times table (2-12) to practice. Try to answer all 13 questions in 60 seconds!</p>
                 
-                <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                <!-- Fact Selection Grid --><div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     <button data-factor="2" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">2s</button>
                     <button data-factor="3" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">3s</button>
                     <button data-factor="4" class="fact-btn text-lg font-bold p-4 rounded-lg bg-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-200 text-gray-100">4s</button>
@@ -121,8 +123,8 @@
                 </button>
             </div>
 
-            <div id="gameScreen" class="screen space-y-6 hidden">
-                <div class="flex justify-between items-center">
+            <!-- ===== Game Screen ===== --><div id="gameScreen" class="screen space-y-6 hidden">
+                <!-- Header: Timer and Progress --><div class="flex justify-between items-center">
                     <div class="text-xl font-bold text-gray-200">
                         Time: <span id="timerDisplay" class="text-red-400">60.0</span>s
                     </div>
@@ -131,11 +133,11 @@
                     </div>
                 </div>
 
-                <div id="problemDisplay" class="text-center text-5xl sm:text-6xl font-black text-blue-400 p-8 bg-gray-700 rounded-lg">
+                <!-- Problem --><div id="problemDisplay" class="text-center text-5xl sm:text-6xl font-black text-blue-400 p-8 bg-gray-700 rounded-lg">
                     12 x 12 =
                 </div>
 
-                <form id="answerForm" class="space-y-4">
+                <!-- Answer Form --><form id="answerForm" class="space-y-4">
                     <input type="number" id="answerInput" inputmode="numeric" pattern="[0-9]*" class="w-full text-center text-4xl p-4 bg-gray-700 border-4 border-gray-600 text-gray-100 rounded-lg focus:border-blue-500 focus:ring-0 outline-none" autocomplete="off" required>
                     <button type="submit" class="w-full p-4 bg-green-600 text-white font-bold rounded-lg text-xl shadow-lg hover:bg-green-700 transition-all duration-200">
                         Submit
@@ -143,7 +145,7 @@
                 </form>
             </div>
 
-            <div id="resultsScreen" class="screen space-y-6 hidden">
+            <!-- ===== Results Screen ===== --><div id="resultsScreen" class="screen space-y-6 hidden">
                 <h1 id="resultsTitle" class="text-4xl font-black text-center text-blue-400">Congratulations!</h1>
                 <p id="resultsMessage" class="text-center text-xl text-gray-200">Your time: 45.32s</p>
 
@@ -269,8 +271,6 @@
             }
 
             function startGame() {
-                stopConfetti(); // <-- THIS IS THE FIX
-                
                 // 1. Setup state
                 appState.problems = generateProblems(appState.selectedFactor);
                 appState.currentProblemIndex = 0;
@@ -443,4 +443,73 @@
                 confetti.classList.add('confetti');
                 confetti.style.left = `${Math.random() * 100}%`;
                 confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.width = `${Math.random() * 12 + 8}
+                confetti.style.width = `${Math.random() * 12 + 8}px`; // Slightly larger
+                confetti.style.height = confetti.style.width;
+                confetti.style.animationDuration = `${Math.random() * 4 + 4}s`; // Longer animation
+                confetti.style.animationDelay = `${Math.random() * 1}s`; // Shorter delay for quicker start
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                
+                confettiContainer.appendChild(confetti);
+
+                setTimeout(() => {
+                    confetti.remove();
+                }, parseFloat(confetti.style.animationDuration) * 1000 + parseFloat(confetti.style.animationDelay) * 1000);
+            }
+
+            function createStarburst(xPercent, yPercent) {
+                const starburst = document.createElement('div');
+                starburst.classList.add('starburst');
+                starburst.style.left = `${xPercent}%`;
+                starburst.style.top = `${yPercent}%`;
+                starburst.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 360}deg)`; // Centered and random rotation
+                starburst.style.borderColor = `transparent transparent ${['gold', 'silver', '#fbcfe8', '#fde047'][Math.floor(Math.random() * 4)]}`; // Dynamic color
+                starburst.style.animationDuration = `${Math.random() * 0.8 + 1.2}s`; // Varied duration
+                starburst.style.animationDelay = `${Math.random() * 0.5}s`;
+
+                confettiContainer.appendChild(starburst);
+
+                setTimeout(() => {
+                    starburst.remove();
+                }, parseFloat(starburst.style.animationDuration) * 1000 + parseFloat(starburst.style.animationDelay) * 1000);
+            }
+
+            function stopConfetti() {
+                clearInterval(confettiInterval);
+                clearTimeout(starburstTimeout);
+                confettiContainer.innerHTML = ''; // Clear all confetti and starbursts
+            }
+
+            // --- LocalStorage Functions ---
+            function getPersonalRecord(factor) {
+                const key = RECORD_KEY_PREFIX + factor;
+                const record = localStorage.getItem(key);
+                return record ? parseFloat(record) : null;
+            }
+
+            function setPersonalRecord(factor, time) {
+                const key = RECORD_KEY_PREFIX + factor;
+                localStorage.setItem(key, time.toFixed(2)); // Store with 2 decimal places
+            }
+
+
+            // --- Event Listeners ---
+            factButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    selectFactor(button.dataset.factor);
+                });
+            });
+
+            startButton.addEventListener('click', startGame);
+
+            answerForm.addEventListener('submit', checkAnswer);
+
+            tryAgainButton.addEventListener('click', startGame); // Restarts same factor
+            homeButton.addEventListener('click', goHome);
+
+
+            // --- Initial Setup ---
+            showScreen('home');
+        });
+    </script>
+</body>
+</html>
