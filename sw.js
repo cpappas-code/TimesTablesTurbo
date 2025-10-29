@@ -1,4 +1,4 @@
-const CACHE_NAME = 'times-table-turbo-v3'; // Increment version if you change assets
+const CACHE_NAME = 'times-table-turbo-v5'; // Increment version if you change assets
 // Define the files to cache
 const urlsToCache = [
     '.', // This caches the index.html at the root
@@ -51,5 +51,6 @@ self.addEventListener('activate', event => {
         })
     );
 });
+
 
 
